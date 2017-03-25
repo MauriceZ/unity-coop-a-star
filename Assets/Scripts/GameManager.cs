@@ -16,9 +16,14 @@ public class GameManager : MonoBehaviour {
     var floorDimensions = floorBounds.max - floorBounds.min;
     Grid = new Grid(new Vector2(floorDimensions.x, floorDimensions.z), floor.transform.position, cellWidth, unwalkableMask);
 
-    var student = GameObject.Find("Student");
+    var student1 = GameObject.Find("Student1");
+    var student2 = GameObject.Find("Student2");
 
-    StartCoroutine(student.GetComponent<Student>().MoveToCell(Grid.WorldPointToCell(28, -10.4f)));
+    var path1 = Grid.GetPath(Grid.WorldPointToCell(15f, 0f), Grid.WorldPointToCell(-15f, 0f));
+    var path2 = Grid.GetPath(Grid.WorldPointToCell(0, -14f), Grid.WorldPointToCell(0, 15f));
+
+    StartCoroutine(student1.GetComponent<Student>().MoveAlongPath(path1));
+    StartCoroutine(student2.GetComponent<Student>().MoveAlongPath(path2));
   }
   
   // Update is called once per frame

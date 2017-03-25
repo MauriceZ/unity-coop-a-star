@@ -15,7 +15,7 @@ public class Cell {
     GridCoords = gridCoords;
   }
 
-  public List<Cell> GetNeighbors() {
+  public List<Cell> GetNeighbors(int timeunit) {
     var neighbors = new List<Cell>();
 
     var x = (int)GridCoords.x;
@@ -23,15 +23,30 @@ public class Cell {
 
     for (int i = -1; i <= 1; i++) {
       for (int j = -1; j <= 1; j++) {
-        if (i == 0 && j == 0)
+
+        if (i != 0 && j != 0) { // is diagonal neighbor
           continue;
+          
+          var horiCell = grid.GridPointToCell(x + i, y);
+          var vertCell = grid.GridPointToCell(x, y + j);
+
+          if (
+            horiCell == null || vertCell == null || 
+            grid.ReservationTable.Contains(new Grid.ReservationKey(horiCell, timeunit)) || 
+            grid.ReservationTable.Contains(new Grid.ReservationKey(vertCell, timeunit))
+          ) continue; // prevent corner cutting when there's an obstacle
+        }
 
         var cell = grid.GridPointToCell(x + i, y + j);
-        if (cell != null)
+        if (cell != null && !grid.ReservationTable.Contains(new Grid.ReservationKey(cell, timeunit)))
           neighbors.Add(cell);
       }
     }
 
     return neighbors;
+  }
+
+  public static float Distance(Cell c1, Cell c2) {
+    return Vector2.Distance(c1.WorldCoords, c2.WorldCoords);
   }
 }

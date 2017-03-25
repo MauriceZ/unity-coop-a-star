@@ -1,29 +1,29 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 
-public class PriorityQueue<T> {
-  private class QueueNode<T> {
-    public T data;
+public class PriorityQueue<T1> {
+  private class QueueNode<T2> {
+    public T2 data;
     public float priority;
 
-    public QueueNode(T data, float priority) {
+    public QueueNode(T2 data, float priority) {
       this.data = data;
       this.priority = priority;
     }
   }
 
-  List<QueueNode<T>> list;
+  List<QueueNode<T1>> list;
 
   public PriorityQueue() {
-    this.list = new List<QueueNode<T>>();
+    this.list = new List<QueueNode<T1>>();
   }
 
-  public void Enqueue(T data, float priority) {
-    list.Add(new QueueNode<T>(data, priority));
+  public void Enqueue(T1 data, float priority) {
+    list.Add(new QueueNode<T1>(data, priority));
     relocateNode(list.Count - 1);
   }
 
-  public T Dequeue() {
+  public T1 Dequeue() {
     if (list.Count == 0)
       throw new System.IndexOutOfRangeException("PriorityQueue is empty");
 
@@ -87,17 +87,17 @@ public class PriorityQueue<T> {
     list[i2] = temp;
   }
 
-  private QueueNode<T> getParentNode(int childIndex) {
+  private QueueNode<T1> getParentNode(int childIndex) {
     return childIndex == 0 ? null : list[childIndex/2];
   }
 
-  private QueueNode<T>[] getChildrenNode(int parentIndex) {
+  private QueueNode<T1>[] getChildrenNode(int parentIndex) {
     if (2 * parentIndex > list.Count - 1) {
-      return new QueueNode<T>[0]; // 0 children
+      return new QueueNode<T1>[0]; // 0 children
     } else if (2 * parentIndex + 1 > list.Count - 1) {
-      return new QueueNode<T>[] { list[2 * parentIndex] }; // 1 child
+      return new QueueNode<T1>[] { list[2 * parentIndex] }; // 1 child
     } else {
-      return new QueueNode<T>[] { list[2 * parentIndex], list[2 * parentIndex + 1] }; // 2 children
+      return new QueueNode<T1>[] { list[2 * parentIndex], list[2 * parentIndex + 1] }; // 2 children
     }
   }
 }
