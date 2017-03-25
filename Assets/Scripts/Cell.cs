@@ -24,17 +24,8 @@ public class Cell {
     for (int i = -1; i <= 1; i++) {
       for (int j = -1; j <= 1; j++) {
 
-        if (i != 0 && j != 0) { // is diagonal neighbor
+        if (i != 0 && j != 0) { // no diagonal movements
           continue;
-          
-          var horiCell = grid.GridPointToCell(x + i, y);
-          var vertCell = grid.GridPointToCell(x, y + j);
-
-          if (
-            horiCell == null || vertCell == null || 
-            grid.ReservationTable.Contains(new Grid.ReservationKey(horiCell, timeunit)) || 
-            grid.ReservationTable.Contains(new Grid.ReservationKey(vertCell, timeunit))
-          ) continue; // prevent corner cutting when there's an obstacle
         }
 
         var cell = grid.GridPointToCell(x + i, y + j);
