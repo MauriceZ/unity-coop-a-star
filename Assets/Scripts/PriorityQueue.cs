@@ -35,6 +35,12 @@ public class PriorityQueue<T1> {
     return targetNode.data;
   }
 
+  public T1 Peek() {
+    if (list.Count == 0)
+      throw new System.IndexOutOfRangeException("PriorityQueue is empty");
+    return list[0].data;
+  }
+
   public int Count() {
     return list.Count;
   }

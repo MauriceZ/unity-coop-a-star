@@ -8,20 +8,23 @@ public class Grid {
   private Vector2 center;
   private float cellWidth;
 
-  public struct ReservationKey {
+  public enum Heuristic { ManhanttanDistance, StraightLineDistance, TrueDistance };
+  private Heuristic heuristic = Heuristic.ManhanttanDistance;
+
+  public struct CellTimePair {
     public Cell cell;
     public int timeUnit;
 
-    public ReservationKey(Cell c, int t) {
+    public CellTimePair(Cell c, int t) {
       cell = c;
       timeUnit = t;
     }
   }
 
-  public HashSet<ReservationKey> ReservationTable { get; private set; }
+  public HashSet<CellTimePair> ReservationTable { get; private set; }
 
   public Grid(Vector2 dimensions, Vector2 center, float cellWidth, LayerMask unwalkableMask) {
-    ReservationTable = new HashSet<ReservationKey>();
+    ReservationTable = new HashSet<CellTimePair>();
 
     this.dimensions = dimensions;
     this.center = center;
@@ -52,57 +55,60 @@ public class Grid {
       return new List<Cell>();
     }
 
-    var queue = new PriorityQueue<Cell>();
-    // var queue = new Queue<Cell>(); // for BFS
-    queue.Enqueue(startCell, 0);
+    var queue = new PriorityQueue<CellTimePair>();
+    var startCellTime = new CellTimePair(startCell, 0);
+    queue.Enqueue(startCellTime, 0);
 
-    var pathParents = new Dictionary<Cell, Cell>();
-    var visited = new HashSet<Cell>();
-    var gCost = new Dictionary<Cell, int>();
-
-    gCost[startCell] = 0;
+    var pathParents = new Dictionary<CellTimePair, CellTimePair>();
 
     while (!queue.IsEmpty()) {
-      var currentCell = queue.Dequeue();
-      visited.Add(currentCell);
+      var currentCellTimePair = queue.Peek();
+      var currentCell = currentCellTimePair.cell;
 
-      if (currentCell == destinationCell) {
+      if (currentCell == destinationCell)
         break;
-      }
 
-      var neighborGCost = gCost[currentCell] + 1;
-      foreach (var neighborCell in currentCell.GetNeighbors(neighborGCost)) {
-        if (!visited.Contains(neighborCell)) {
-          // gCost[neighborCell] = gCost[currentCell] + distanceBetweenCells(currentCell, neighborCell);
-          gCost[neighborCell] = neighborGCost;
-          var hCost = Cell.Distance(neighborCell, destinationCell); // using the straight line distance as a heuristic
-          pathParents[neighborCell] = currentCell;
+      queue.Dequeue();
 
-          queue.Enqueue(neighborCell, gCost[neighborCell] + hCost);
-        }
+      var neighborGCost = currentCellTimePair.timeUnit + 1;
+      foreach (var neighborCell in currentCell.GetAvailableNeighbors(neighborGCost)) {
+        var neighborCellTimePair = new CellTimePair(neighborCell, neighborGCost);
+
+        var neighborHCost = GetHeuristicValue(neighborCell, destinationCell); // using the straight line distance as the heuristic
+        pathParents[neighborCellTimePair] = currentCellTimePair;
+        queue.Enqueue(neighborCellTimePair, neighborGCost + neighborHCost);
       }
     }
 
     var path = new List<Cell>();
-    if (!pathParents.ContainsKey(destinationCell)) { // path not found
+    if (queue.IsEmpty()) { // path not found
       return path;
     }
 
-    path.Add(destinationCell);
-    var parent = destinationCell;
+    var destinationCellTimePair = queue.Peek();
 
+    var parent = destinationCellTimePair;
     while (pathParents.ContainsKey(parent)) {
-      path.Add(parent);
+      ReservationTable.Add(parent);
+      path.Add(parent.cell);
       parent = pathParents[parent];
     }
 
-    path.Add(parent);
+    ReservationTable.Add(parent);
+    path.Add(parent.cell);
     path.Reverse();
 
-    foreach (var pathCell in path)
-      ReservationTable.Add(new ReservationKey(pathCell, gCost[pathCell]));
-
     return path;
+  }
+
+  private float GetHeuristicValue(Cell c1, Cell c2) {
+    switch (heuristic) {
+      case Heuristic.StraightLineDistance:
+        return Cell.StraightLineDistance(c1, c2);
+      case Heuristic.ManhanttanDistance:
+      default:
+        return Cell.ManhanttanDistance(c1, c2);
+    }
   }
 
   public Cell WorldPointToCell(Vector2 position) {

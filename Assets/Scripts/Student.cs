@@ -44,7 +44,7 @@ public class Student : MonoBehaviour {
   // Use this for initialization
   void Start () {
     gameManager = transform.root.GetComponent<GameManager>();
-    Debug.Log(transform.position);
+    // Debug.Log(transform.position);
   }
   
   // Update is called once per frame

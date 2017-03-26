@@ -15,7 +15,20 @@ public class Cell {
     GridCoords = gridCoords;
   }
 
-  public List<Cell> GetNeighbors(int timeunit) {
+  public List<Cell> GetAvailableNeighbors(int timeunit) {
+    var allNeighbors = GetNeighbors();
+    var availableNeighbors = new List<Cell>();
+
+    foreach (var neighbor in allNeighbors) {
+      if (!grid.ReservationTable.Contains(new Grid.CellTimePair(neighbor, timeunit)))
+        availableNeighbors.Add(neighbor);
+    }
+
+    return availableNeighbors;
+  }
+
+  // Gets all neighbors, whether or not it's reserved
+  public List<Cell> GetNeighbors() {
     var neighbors = new List<Cell>();
 
     var x = (int)GridCoords.x;
@@ -23,13 +36,11 @@ public class Cell {
 
     for (int i = -1; i <= 1; i++) {
       for (int j = -1; j <= 1; j++) {
-
-        if (i != 0 && j != 0) { // no diagonal movements
+        if (i != 0 && j != 0) // no diagonal movements
           continue;
-        }
 
         var cell = grid.GridPointToCell(x + i, y + j);
-        if (cell != null && !grid.ReservationTable.Contains(new Grid.ReservationKey(cell, timeunit)))
+        if (cell != null)
           neighbors.Add(cell);
       }
     }
@@ -37,7 +48,11 @@ public class Cell {
     return neighbors;
   }
 
-  public static float Distance(Cell c1, Cell c2) {
-    return Vector2.Distance(c1.WorldCoords, c2.WorldCoords);
+  public static float StraightLineDistance(Cell c1, Cell c2) {
+    return Vector2.Distance(c1.GridCoords, c2.GridCoords);
+  }
+
+  public static float ManhanttanDistance(Cell c1, Cell c2) {
+    return Mathf.Abs(c1.GridCoords.x - c2.GridCoords.x) + Mathf.Abs(c1.GridCoords.y - c2.GridCoords.y);
   }
 }

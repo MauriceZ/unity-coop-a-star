@@ -19,11 +19,8 @@ public class GameManager : MonoBehaviour {
     var student1 = GameObject.Find("Student1");
     var student2 = GameObject.Find("Student2");
 
-    var path1 = Grid.GetPath(Grid.WorldPointToCell(15f, 0f), Grid.WorldPointToCell(-15f, 0f));
-    var path2 = Grid.GetPath(Grid.WorldPointToCell(0, -14f), Grid.WorldPointToCell(0, 15f));
-
-    StartCoroutine(student1.GetComponent<Student>().MoveAlongPath(path1));
-    StartCoroutine(student2.GetComponent<Student>().MoveAlongPath(path2));
+    StartCoroutine(student1.GetComponent<Student>().MoveToCell(Grid.WorldPointToCell(-15f, 0f)));
+    StartCoroutine(student2.GetComponent<Student>().MoveToCell(Grid.WorldPointToCell(0, 15f)));
   }
   
   // Update is called once per frame
