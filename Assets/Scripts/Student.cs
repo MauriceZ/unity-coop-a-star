@@ -15,7 +15,55 @@ public class Student : MonoBehaviour {
     if (startCell == null)
       throw new System.NullReferenceException("Student is not in grid");
 
-    return grid.GetPath(startCell, destinationCell);
+    if (startCell == destinationCell || destinationCell == null) {
+      return new List<Cell>();
+    }
+
+    var rra = new ReverseResumableAStar(destinationCell, startCell);
+
+    var queue = new PriorityQueue<Grid.CellTimePair>();
+    var startCellTime = new Grid.CellTimePair(startCell, 0);
+    queue.Enqueue(startCellTime, 0);
+
+    var pathParents = new Dictionary<Grid.CellTimePair, Grid.CellTimePair>();
+
+    while (!queue.IsEmpty()) {
+      var currentCellTimePair = queue.Peek();
+      var currentCell = currentCellTimePair.cell;
+
+      if (currentCell == destinationCell)
+        break;
+
+      queue.Dequeue();
+
+      var neighborGCost = currentCellTimePair.timeUnit + 1;
+      foreach (var neighborCell in currentCell.GetAvailableNeighbors(neighborGCost)) {
+        var neighborCellTimePair = new Grid.CellTimePair(neighborCell, neighborGCost);
+        var neighborHCost = rra.GetTrueDistance(neighborCell);
+        pathParents[neighborCellTimePair] = currentCellTimePair;
+        queue.Enqueue(neighborCellTimePair, neighborGCost + neighborHCost);
+      }
+    }
+
+    var path = new List<Cell>();
+    if (queue.IsEmpty()) { // path not found
+      return path;
+    }
+
+    var destinationCellTimePair = queue.Peek();
+
+    var parent = destinationCellTimePair;
+    while (pathParents.ContainsKey(parent)) {
+      gameManager.Grid.ReservationTable.Add(parent);
+      path.Add(parent.cell);
+      parent = pathParents[parent];
+    }
+
+    gameManager.Grid.ReservationTable.Add(parent);
+    path.Add(parent.cell);
+    path.Reverse();
+
+    return path;
   }
 
   public IEnumerator MoveToCell(Cell destinationCell) {

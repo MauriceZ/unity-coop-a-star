@@ -50,67 +50,6 @@ public class Grid {
     }
   }
 
-  public List<Cell> GetPath(Cell startCell, Cell destinationCell) {
-    if (startCell == destinationCell || destinationCell == null) {
-      return new List<Cell>();
-    }
-
-    var queue = new PriorityQueue<CellTimePair>();
-    var startCellTime = new CellTimePair(startCell, 0);
-    queue.Enqueue(startCellTime, 0);
-
-    var pathParents = new Dictionary<CellTimePair, CellTimePair>();
-
-    while (!queue.IsEmpty()) {
-      var currentCellTimePair = queue.Peek();
-      var currentCell = currentCellTimePair.cell;
-
-      if (currentCell == destinationCell)
-        break;
-
-      queue.Dequeue();
-
-      var neighborGCost = currentCellTimePair.timeUnit + 1;
-      foreach (var neighborCell in currentCell.GetAvailableNeighbors(neighborGCost)) {
-        var neighborCellTimePair = new CellTimePair(neighborCell, neighborGCost);
-
-        var neighborHCost = GetHeuristicValue(neighborCell, destinationCell); // using the straight line distance as the heuristic
-        pathParents[neighborCellTimePair] = currentCellTimePair;
-        queue.Enqueue(neighborCellTimePair, neighborGCost + neighborHCost);
-      }
-    }
-
-    var path = new List<Cell>();
-    if (queue.IsEmpty()) { // path not found
-      return path;
-    }
-
-    var destinationCellTimePair = queue.Peek();
-
-    var parent = destinationCellTimePair;
-    while (pathParents.ContainsKey(parent)) {
-      ReservationTable.Add(parent);
-      path.Add(parent.cell);
-      parent = pathParents[parent];
-    }
-
-    ReservationTable.Add(parent);
-    path.Add(parent.cell);
-    path.Reverse();
-
-    return path;
-  }
-
-  private float GetHeuristicValue(Cell c1, Cell c2) {
-    switch (heuristic) {
-      case Heuristic.StraightLineDistance:
-        return Cell.StraightLineDistance(c1, c2);
-      case Heuristic.ManhanttanDistance:
-      default:
-        return Cell.ManhanttanDistance(c1, c2);
-    }
-  }
-
   public Cell WorldPointToCell(Vector2 position) {
     var worldLength = position - (center - dimensions / 2);
     var gridCoordsX = Mathf.FloorToInt(worldLength.x / cellWidth);
