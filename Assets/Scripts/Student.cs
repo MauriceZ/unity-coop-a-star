@@ -4,25 +4,39 @@ using UnityEngine;
 
 public class Student : MonoBehaviour {
   public float speed;
+  public int searchDepth;
 
   private GameManager gameManager;
   private Dictionary<string, Cell> teacherCells = new Dictionary<string, Cell>();
+  private Dictionary<Cell, ReverseResumableAStar> rraDict = new Dictionary<Cell, ReverseResumableAStar>();
 
-  private List<Cell> GetPath(Cell destinationCell) {
+  public static Student Instantiate(GameManager gameManager, Cell startCell) {
+    var student = Instantiate(gameManager.studentPrefab, gameManager.transform) as Student;
+
+    student.transform.position = new Vector3(startCell.WorldCoords.x, gameManager.studentPrefab.transform.localScale.y , startCell.WorldCoords.y);
+    student.gameManager = gameManager;
+    student.speed = gameManager.studentSpeed;
+    student.searchDepth = gameManager.studentSearchDepth;
+
+    return student;
+  }
+
+  private List<Cell> GetPath(Cell startCell, Cell destinationCell, int startTimeUnit = 0) {
     var grid = gameManager.Grid;
-    var startCell = grid.WorldPointToCell(transform.position.x, transform.position.z);
 
     if (startCell == null)
       throw new System.NullReferenceException("Student is not in grid");
 
-    if (startCell == destinationCell || destinationCell == null) {
-      return new List<Cell>();
+    ReverseResumableAStar rra = null;
+    if (rraDict.ContainsKey(destinationCell)) {
+      rra = rraDict[destinationCell];
+    } else {
+      rra = new ReverseResumableAStar(destinationCell, startCell);
+      rraDict[destinationCell] = rra;
     }
 
-    var rra = new ReverseResumableAStar(destinationCell, startCell);
-
     var queue = new PriorityQueue<Grid.CellTimePair>();
-    var startCellTime = new Grid.CellTimePair(startCell, 0);
+    var startCellTime = new Grid.CellTimePair(startCell, startTimeUnit);
     queue.Enqueue(startCellTime, 0);
 
     var pathParents = new Dictionary<Grid.CellTimePair, Grid.CellTimePair>();
@@ -31,7 +45,7 @@ public class Student : MonoBehaviour {
       var currentCellTimePair = queue.Peek();
       var currentCell = currentCellTimePair.cell;
 
-      if (currentCell == destinationCell)
+      if (currentCellTimePair.timeUnit - startTimeUnit == searchDepth || currentCell == destinationCell)
         break;
 
       queue.Dequeue();
@@ -46,7 +60,8 @@ public class Student : MonoBehaviour {
     }
 
     var path = new List<Cell>();
-    if (queue.IsEmpty()) { // path not found
+    if (queue.IsEmpty()) {// path not found
+      Debug.Log("empty path!!");
       return path;
     }
 
@@ -67,14 +82,14 @@ public class Student : MonoBehaviour {
   }
 
   public IEnumerator MoveToCell(Cell destinationCell) {
-    var path = GetPath(destinationCell);
-    yield return StartCoroutine(MoveAlongPath(path));
-  }
-
-  public IEnumerator MoveAlongPath(List<Cell> path) {
     var delay = new WaitForSeconds(1/120f);
-
+    var grid = gameManager.Grid;
     var studentY = transform.position.y;
+
+    var startCell = grid.WorldPointToCell(transform.position.x, transform.position.z);
+    var currentCell = startCell;
+
+    var path = GetPath(currentCell, destinationCell, 0);
 
     for (int i = 0; i < path.Count - 1; i++) {
       var startPosition = new Vector3(path[i].WorldCoords.x, studentY, path[i].WorldCoords.y);
@@ -86,17 +101,14 @@ public class Student : MonoBehaviour {
         currentPosition = Vector3.Lerp(startPosition, nextPosition, j);
         yield return delay;
       }
-    }
-  }
 
-  // Use this for initialization
-  void Start () {
-    gameManager = transform.root.GetComponent<GameManager>();
-    // Debug.Log(transform.position);
-  }
-  
-  // Update is called once per frame
-  void Update () {
-    
+      if (i == (path.Count - 1) / 2) { // calculate the next partial path
+        var partialPath = GetPath(path[path.Count - 1], destinationCell, path.Count - 1);
+        partialPath.RemoveAt(0);
+        path.AddRange(partialPath);
+      }
+
+      currentCell = path[i + 1];
+    }
   }
 }

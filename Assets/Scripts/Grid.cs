@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Grid {
+  public enum Direction { Up, Down, Left, Right }
+
   public Cell[,] Cells { get; private set; }
   private Vector2 dimensions;
   private Vector2 center;
   private float cellWidth;
-
-  public enum Heuristic { ManhanttanDistance, StraightLineDistance, TrueDistance };
-  private Heuristic heuristic = Heuristic.ManhanttanDistance;
 
   public struct CellTimePair {
     public Cell cell;
@@ -50,23 +49,33 @@ public class Grid {
     }
   }
 
-  public Cell WorldPointToCell(Vector2 position) {
+  public Cell WorldPointToCell(Vector2 position, bool mustBeWalkable = true) {
     var worldLength = position - (center - dimensions / 2);
     var gridCoordsX = Mathf.FloorToInt(worldLength.x / cellWidth);
     var gridCoordsY = Mathf.FloorToInt(worldLength.y / cellWidth);
 
-    return GridPointToCell(gridCoordsX, gridCoordsY);
+    return GridPointToCell(gridCoordsX, gridCoordsY, mustBeWalkable);
   }
 
-  public Cell WorldPointToCell(float x, float y) {
-    return WorldPointToCell(new Vector2(x, y));
+  public Cell WorldPointToCell(float x, float y, bool mustBeWalkable = true) {
+    return WorldPointToCell(new Vector2(x, y), mustBeWalkable);
   }
 
-  public Cell GridPointToCell(float x, float y) {
-    return ContainsGridCoords(x, y) && Cells[(int)y, (int)x].IsWalkable ? Cells[(int)y, (int)x] : null;
+  public Cell GridPointToCell(float x, float y, bool mustBeWalkable = true) {
+    if (ContainsGridCoords(x, y) && (!mustBeWalkable || Cells[(int)y, (int)x].IsWalkable))
+      return Cells[(int)y, (int)x];
+
+    return null;
   }
 
   public bool ContainsGridCoords(float x, float y) {
     return y < Cells.GetLength(0) && x < Cells.GetLength(1);
+  }
+
+  public static Vector2 DirectionToVector(Direction direction) {
+    return 
+      direction == Direction.Up ? Vector2.up :
+      direction == Direction.Down ? Vector2.down :
+      direction == Direction.Left ? Vector2.left : Vector2.right;
   }
 }

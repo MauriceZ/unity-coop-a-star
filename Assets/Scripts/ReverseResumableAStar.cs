@@ -4,14 +4,12 @@ using UnityEngine;
 
 public class ReverseResumableAStar {
   private Grid grid;
-  private Cell startCell;
   private Cell destinationCell;
   private HashSet<Cell> visited;
   private PriorityQueue<Cell> queue;
   private Dictionary<Cell, float> gCosts;
 
   public ReverseResumableAStar(Cell startCell, Cell destinationCell) {
-    this.startCell = startCell;
     this.destinationCell = destinationCell;
     visited = new HashSet<Cell>();
     queue = new PriorityQueue<Cell>();
