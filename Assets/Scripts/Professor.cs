@@ -27,4 +27,16 @@ public class Professor : MonoBehaviour {
 
     return targetCell;
   }
+
+  public string GetNextProfName() {
+    // return random prof that is not itself
+
+    var professors = gameManager.Professors;
+    var randProfInd = Random.Range(0, professors.Length);
+
+    if (professors[randProfInd] == this)
+      randProfInd = (randProfInd + 1) % professors.Length;
+
+    return professors[randProfInd].Name;
+  }
 }

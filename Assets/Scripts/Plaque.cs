@@ -16,7 +16,7 @@ public class Plaque : MonoBehaviour {
 
   public Cell GetTargetCell() {
     if (targetCell == null) {
-      var cell = gameManager.Grid.WorldPointToCell(transform.position.x, transform.position.z);
+      var cell = gameManager.Grid.WorldPointToCell(transform.position.x, transform.position.z, false);
       var targetCellCoords = cell.GridCoords + Grid.DirectionToVector(direction);
       targetCell = gameManager.Grid.GridPointToCell(targetCellCoords.x, targetCellCoords.y);
     }
@@ -28,7 +28,7 @@ public class Plaque : MonoBehaviour {
     return professor.gameObject.transform.name == profName;
   }
 
-  public Cell GetProfessorTargetCell() {
-    return professor.GetTargetCell();
+  public Professor GetProfessor() {
+    return professor;
   }
 }

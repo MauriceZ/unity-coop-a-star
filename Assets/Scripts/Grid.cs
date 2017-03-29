@@ -78,4 +78,25 @@ public class Grid {
       direction == Direction.Down ? Vector2.down :
       direction == Direction.Left ? Vector2.left : Vector2.right;
   }
+
+  public Cell[] GetMainFloorCornerCells() {
+    var startFloor = GameObject.Find("StudentStartFloor");
+    var floorBounds = startFloor.GetComponent<Renderer>().bounds;
+
+    return new [] {
+      WorldPointToCell(floorBounds.min.x, floorBounds.min.z),
+      WorldPointToCell(floorBounds.max.x, floorBounds.max.z)
+    };
+  }
+
+  public Cell GetRandomMainFloorCell() {
+    var cornerCells = GetMainFloorCornerCells();
+
+    int minX = (int)cornerCells[0].GridCoords.x;
+    int minY = (int)cornerCells[0].GridCoords.y;
+    int maxX = (int)cornerCells[1].GridCoords.x;
+    int maxY = (int)cornerCells[1].GridCoords.y;
+
+    return GridPointToCell(Random.Range(minX, maxX + 1), Random.Range(minY, maxY + 1));
+  }
 }

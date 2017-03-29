@@ -5,24 +5,27 @@ using UnityEngine;
 public class Student : MonoBehaviour {
   public float speed;
   public int searchDepth;
+  public GameManager GameManager { get; private set; }
 
-  private GameManager gameManager;
-  private Dictionary<string, Cell> teacherCells = new Dictionary<string, Cell>();
   private Dictionary<Cell, ReverseResumableAStar> rraDict = new Dictionary<Cell, ReverseResumableAStar>();
+  private List<Grid.CellTimePair> path;
+  private StudentState state;
+  private int currentTimeUnit = 0;
 
-  public static Student Instantiate(GameManager gameManager, Cell startCell) {
+  public static Student Instantiate(GameManager gameManager, Cell startCell, string firstProfName) {
     var student = Instantiate(gameManager.studentPrefab, gameManager.transform) as Student;
 
     student.transform.position = new Vector3(startCell.WorldCoords.x, gameManager.studentPrefab.transform.localScale.y , startCell.WorldCoords.y);
-    student.gameManager = gameManager;
+    student.GameManager = gameManager;
     student.speed = gameManager.studentSpeed;
     student.searchDepth = gameManager.studentSearchDepth;
+    student.state = new StudentState(student, firstProfName);
 
     return student;
   }
 
-  private List<Cell> GetPath(Cell startCell, Cell destinationCell, int startTimeUnit = 0) {
-    var grid = gameManager.Grid;
+  private List<Grid.CellTimePair> GetPath(Cell startCell, Cell destinationCell, int startTimeUnit = 0) {
+    var grid = GameManager.Grid;
 
     if (startCell == null)
       throw new System.NullReferenceException("Student is not in grid");
@@ -59,7 +62,7 @@ public class Student : MonoBehaviour {
       }
     }
 
-    var path = new List<Cell>();
+    var path = new List<Grid.CellTimePair>();
     if (queue.IsEmpty()) {// path not found
       Debug.Log("empty path!!");
       return path;
@@ -69,46 +72,73 @@ public class Student : MonoBehaviour {
 
     var parent = destinationCellTimePair;
     while (pathParents.ContainsKey(parent)) {
-      gameManager.Grid.ReservationTable.Add(parent);
-      path.Add(parent.cell);
+      GameManager.Grid.ReservationTable.Add(parent);
+      path.Add(parent);
       parent = pathParents[parent];
     }
 
-    gameManager.Grid.ReservationTable.Add(parent);
-    path.Add(parent.cell);
     path.Reverse();
-
     return path;
   }
 
-  public IEnumerator MoveToCell(Cell destinationCell) {
+  public IEnumerator Move() {
     var delay = new WaitForSeconds(1/120f);
-    var grid = gameManager.Grid;
+    var grid = GameManager.Grid;
     var studentY = transform.position.y;
 
-    var startCell = grid.WorldPointToCell(transform.position.x, transform.position.z);
-    var currentCell = startCell;
+    state.SeekPlaque();
+    currentTimeUnit = 0;
 
-    var path = GetPath(currentCell, destinationCell, 0);
+    while (true) {
+      var startCell = grid.WorldPointToCell(transform.position.x, transform.position.z);
+      var currentCell = startCell;
 
-    for (int i = 0; i < path.Count - 1; i++) {
-      var startPosition = new Vector3(path[i].WorldCoords.x, studentY, path[i].WorldCoords.y);
-      var nextPosition = new Vector3(path[i + 1].WorldCoords.x, studentY, path[i + 1].WorldCoords.y);
-      var currentPosition = startPosition;
+      path = new List<Grid.CellTimePair>();
+      path.Add(new Grid.CellTimePair(startCell, ++currentTimeUnit));
+      path.AddRange(GetPath(currentCell, state.DestinationCell, currentTimeUnit));
 
-      for (float j = 0f; j < 1; j += speed/120f) {
-        transform.position = currentPosition;
-        currentPosition = Vector3.Lerp(startPosition, nextPosition, j);
-        yield return delay;
+      for (int i = 0; i < path.Count - 1; i++) {
+        var startPosition = new Vector3(path[i].cell.WorldCoords.x, studentY, path[i].cell.WorldCoords.y);
+        var nextPosition = new Vector3(path[i + 1].cell.WorldCoords.x, studentY, path[i + 1].cell.WorldCoords.y);
+        var currentPosition = startPosition;
+
+        for (float j = 0f; j < 1; j += speed/120f) {
+          transform.position = currentPosition;
+          currentPosition = Vector3.Lerp(startPosition, nextPosition, j);
+          yield return delay;
+        }
+
+        if (i == (path.Count - 1) / 2) { // calculate the next partial path
+          var partialPath = GetPath(path[path.Count - 1].cell, state.DestinationCell, path[path.Count - 1].timeUnit);
+          path.AddRange(partialPath);
+        }
+
+        currentTimeUnit = path[i].timeUnit;
+        // Debug.Log(path[i].timeUnit);
       }
 
-      if (i == (path.Count - 1) / 2) { // calculate the next partial path
-        var partialPath = GetPath(path[path.Count - 1], destinationCell, path.Count - 1);
-        partialPath.RemoveAt(0);
-        path.AddRange(partialPath);
-      }
-
-      currentCell = path[i + 1];
+      state.Behave();
     }
+  }
+
+  public int getNearestPlaqueIndex() { // approximate since we are using straight line distance
+    var plaques = GameManager.Plaques;
+    var currentPlaqueInd = 0;
+    var currentPlaque = plaques[currentPlaqueInd];
+    var currentPosition = transform.position;
+    var currentDistance = Vector3.Distance(currentPlaque.transform.position, currentPosition);
+
+    for (int i = 1; i < plaques.Length; i++) {
+      var plaque = plaques[i];
+      var plaqueDistance = Vector3.Distance(plaque.transform.position, currentPosition);
+
+      if (plaqueDistance < currentDistance) {
+        currentPlaque = plaque;
+        currentPlaqueInd = i;
+        currentDistance = plaqueDistance;
+      }
+    }
+
+    return currentPlaqueInd;
   }
 }
