@@ -6,7 +6,7 @@ public class StudentFrustation {
   private float prevDistanceRemaining;
   private int timeUnitsFrustated;
   private Student student;
-  private Color studentOriginalColor;
+  private Color studentOriginalColor; // the student's base color
 
   public StudentFrustation(Student student) {
     this.student = student;
@@ -16,8 +16,6 @@ public class StudentFrustation {
   }
 
   public void UpdateFrustation(float distanceRemaining) {
-    // Debug.Log(prevDistanceRemaining);
-
     if (prevDistanceRemaining != 0 && distanceRemaining >= prevDistanceRemaining)  {
       timeUnitsFrustated++;
     } else {
@@ -31,7 +29,7 @@ public class StudentFrustation {
   private void updateStudentColor() {
     Color color;
 
-    if (timeUnitsFrustated >= 18) {
+    if (timeUnitsFrustated >= 18) { // 1 timeunit is approximately 0.1667 seconds
       color = Color.red;
     } else if (timeUnitsFrustated >= 1) {
       color = new Color(1, 0.54f, 0, 1);

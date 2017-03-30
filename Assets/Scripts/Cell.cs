@@ -5,7 +5,7 @@ using UnityEngine;
 public class Cell {
   public Vector2 WorldCoords { get; private set; }
   public Vector2 GridCoords { get; private set; }
-  public bool IsWalkable { get; set; }
+  public bool IsWalkable { get; set; } // returns whether or not there is an obstacle at that cell
 
   private Grid grid;
 

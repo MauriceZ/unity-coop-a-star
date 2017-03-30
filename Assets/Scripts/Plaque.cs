@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Plaque : MonoBehaviour {
+  // direction vector is used to determine which cell students should reach to read this plaque
   public Grid.Direction direction;
   public Professor professor;
 

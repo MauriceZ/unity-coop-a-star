@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 
+// my own implementation of a priority queue using a binary heap
 public class PriorityQueue<T1> {
   private class QueueNode<T2> {
     public T2 data;

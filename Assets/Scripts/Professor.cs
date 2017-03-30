@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Professor : MonoBehaviour {
+  // direction vector is used to determine which cell students should reach to consult this professor
   public Grid.Direction direction;
   public Plaque plaque;
 
@@ -29,7 +30,7 @@ public class Professor : MonoBehaviour {
   }
 
   public string GetNextProfName() {
-    // return random prof that is not itself
+    // return random prof that is not itself that the this professor advises
 
     var professors = gameManager.Professors;
     var randProfInd = Random.Range(0, professors.Length);

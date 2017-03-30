@@ -24,7 +24,7 @@ public class GameManager : MonoBehaviour {
 
     Professors = FindObjectsOfType<Professor>();
     Plaques = FindObjectsOfType<Plaque>();
-     // sort the plaques by name so that they are ordered in a circle
+    // sort the plaques by name so that they are ordered in a circle
     System.Array.Sort(Plaques, (a, b) => System.String.Compare(a.transform.name, b.transform.name));
 
     GenerateStudents();
@@ -42,6 +42,7 @@ public class GameManager : MonoBehaviour {
   }
 
   private void GenerateStudents() {
+    // generated the students at some location and with some random target professor
     var cornerCells = Grid.GetMainFloorCornerCells();
 
     int minX = (int)cornerCells[0].GridCoords.x;

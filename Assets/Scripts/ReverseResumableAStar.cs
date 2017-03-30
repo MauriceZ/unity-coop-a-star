@@ -11,6 +11,7 @@ public class ReverseResumableAStar {
 
   public Cell DestinationCell { get { return destinationCell; } }
 
+  // a star implementation that is resumable. used to get true distances
   public ReverseResumableAStar(Cell startCell, Cell destinationCell) {
     this.destinationCell = destinationCell;
     visited = new HashSet<Cell>();
@@ -21,6 +22,7 @@ public class ReverseResumableAStar {
   }
 
   public float GetTrueDistance(Cell targetCell) {
+    // gets the distance from destinationCell to targetCell
     if (targetCell == null) {
       throw new System.ArgumentNullException();
     }
@@ -44,8 +46,6 @@ public class ReverseResumableAStar {
           queue.Enqueue(neighborCell, neighborGCost + neighborHCost);
         }
       }
-
-      // Debug.Log("getting true distance");
     }
 
     if (gCosts.ContainsKey(targetCell))

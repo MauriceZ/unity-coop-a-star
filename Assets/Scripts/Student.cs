@@ -14,6 +14,7 @@ public class Student : MonoBehaviour {
   private StudentState state;
   private StudentFrustation frustation;
 
+  // Student factory
   public static Student Instantiate(GameManager gameManager, Cell startCell, string firstProfName) {
     var student = Instantiate(gameManager.studentPrefab, gameManager.transform) as Student;
 
@@ -28,6 +29,9 @@ public class Student : MonoBehaviour {
   }
 
   private List<Grid.CellTimePair> GetPath(Cell startCell, Cell destinationCell, int startTimeUnit = 0) {
+    // implementation of A star
+    // a timeunit represents one movement
+
     var grid = GameManager.Grid;
 
     if (startCell == null)
@@ -80,6 +84,8 @@ public class Student : MonoBehaviour {
   }
 
   private List<Grid.CellTimePair> GetIdlePath(Cell idleCell, int idleTime, int startTimeUnit = 0) {
+    // a star that favors staying at the current cell
+
     var grid = GameManager.Grid;
 
     if (idleCell == null)
@@ -113,7 +119,6 @@ public class Student : MonoBehaviour {
 
     var path = new List<Grid.CellTimePair>();
     if (queue.IsEmpty()) { // path not found
-      Debug.Log("idle empty path!!");
       path.Add(new Grid.CellTimePair(idleCell, startTimeUnit + 1));
       path.Add(new Grid.CellTimePair(idleCell, startTimeUnit + 2));
       path.Add(new Grid.CellTimePair(idleCell, startTimeUnit + 3));
@@ -177,7 +182,8 @@ public class Student : MonoBehaviour {
         yield return delay;
       }
 
-      if (i == (path.Count - 1) / 2) { // calculate the next partial path
+      // calculate the next partial path when student has reached half its current path
+      if (i == (path.Count - 1) / 2) {
         var origPathCount = path.Count;
 
         while (path.Count - origPathCount <= 1) { // path must increase by at least 2 due to integer division offset
@@ -210,11 +216,13 @@ public class Student : MonoBehaviour {
     return path[path.Count - 1];
   }
 
-  public int getNearestPlaqueIndex() { // approximate since we are using straight line distance
+  public int getNearestPlaqueIndex(Cell currentCell) { // approximate since we are using straight line distance
+    // gets the plaque nearest to where the student currently is
+
     var plaques = GameManager.Plaques;
     var currentPlaqueInd = 0;
     var currentPlaque = plaques[currentPlaqueInd];
-    var currentPosition = transform.position;
+    var currentPosition = currentCell.WorldCoords;
     var currentDistance = Vector3.Distance(currentPlaque.transform.position, currentPosition);
 
     for (int i = 1; i < plaques.Length; i++) {
@@ -232,6 +240,8 @@ public class Student : MonoBehaviour {
   }
 
   private ReverseResumableAStar getRRA(Cell startCell, Cell destinationCell) {
+    // if the RRA destination cell is too far from the current cell (8 cells), then it is restarted
+
     if (rraDict.ContainsKey(destinationCell)) {
       var rra = rraDict[destinationCell];
       if (rra.HasCell(startCell) || Cell.ManhanttanDistance(rra.DestinationCell, startCell) <= 8) {

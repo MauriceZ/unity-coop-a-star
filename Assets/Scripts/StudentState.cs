@@ -27,24 +27,27 @@ public class StudentState {
   }
 
   public void SeekPlaque() {
-    // Debug.Log("Seeking Plaque");
-
     var prof = GetMemorizedProfessor(CurrentProfName);
     if (prof != null) {
       CurrentProf = prof;
-      // Debug.Log("Memorized");
       SeekProf();
       return;
     }
 
     CurrentStatus = Status.SeekingPlaque;
-    currentPlaqueInd = student.getNearestPlaqueIndex();
+
+    if (student.path.Count == 0) {
+      var currentCell = gameManager.Grid.WorldPointToCell(student.transform.position.x, student.transform.position.z);
+      currentPlaqueInd = student.getNearestPlaqueIndex(currentCell);
+    } else {
+      currentPlaqueInd = student.getNearestPlaqueIndex(student.path[student.path.Count - 1].cell);
+    }
+
     CurrentPlaque = gameManager.Plaques[currentPlaqueInd];
     DestinationCell = CurrentPlaque.GetTargetCell();
   }
 
   public void SeekNextPlaque() {
-    // Debug.Log("Seeking Plaque");
     CurrentStatus = Status.SeekingPlaque;
     currentPlaqueInd = (currentPlaqueInd + 1) % gameManager.Plaques.Length;
     CurrentPlaque = gameManager.Plaques[currentPlaqueInd];
@@ -52,14 +55,12 @@ public class StudentState {
   }
 
   public void SeekProf() {
-    // Debug.Log("Seeking Prof");
     CurrentStatus = Status.SeekingProf;
     DestinationCell = CurrentProf.GetTargetCell();
     CurrentPlaque = null;
   }
 
   public void ConsultProf() {
-    // Debug.Log("Consulting Prof");
     CurrentStatus = Status.ConsultingProf;
     CurrentProfName = CurrentProf.GetNextProfName();
     CurrentProf = null;
@@ -71,7 +72,6 @@ public class StudentState {
   }
 
   public void SeekIdlingCell() {
-    // Debug.Log("Seeking Idle Cell");
     CurrentStatus = Status.SeekingIdleCell;
     DestinationCell = gameManager.Grid.GetRandomMainFloorCell();
   }
@@ -82,12 +82,12 @@ public class StudentState {
   }
 
   private void setIdling(int idleTime) {
-    // Debug.Log("Iding");
     IsIdling = true;
     IdleTime = idleTime;
   }
 
   // called after the last state is finished
+  // implementation of the behavior tree
   public void NextState() {
     switch (CurrentStatus) { // checking the previous status
       case Status.SeekingPlaque:
