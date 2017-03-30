@@ -20,10 +20,10 @@ public class Grid {
     }
   }
 
-  public HashSet<CellTimePair> ReservationTable { get; private set; }
+  public Dictionary<CellTimePair, Student> ReservationTable { get; private set; }
 
   public Grid(Vector2 dimensions, Vector2 center, float cellWidth, LayerMask unwalkableMask) {
-    ReservationTable = new HashSet<CellTimePair>();
+    ReservationTable = new Dictionary<CellTimePair, Student>();
 
     this.dimensions = dimensions;
     this.center = center;

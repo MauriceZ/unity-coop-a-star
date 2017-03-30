@@ -4,13 +4,15 @@ using System.Collections.Specialized;
 using UnityEngine;
 
 public class StudentState {
-  public enum Status { SeekingPlaque, SeekingProf, ConsultingProf, RandomIdling };
+  public enum Status { SeekingPlaque, SeekingProf, ConsultingProf, ConsultingProfIdling, SeekingIdleCell, RandomIdling };
 
   public Status CurrentStatus { get; private set; }
   public Plaque CurrentPlaque { get; private set; }
   public Professor CurrentProf { get; private set; }
   public string CurrentProfName { get; private set; }
   public Cell DestinationCell { get; private set; }
+  public bool IsIdling { get; private set; }
+  public int IdleTime { get; private set; }
 
   private int currentPlaqueInd;
   private Student student;
@@ -21,15 +23,16 @@ public class StudentState {
     CurrentProfName = firstProfName;
     this.student = student;
     gameManager = student.GameManager;
+    IsIdling = false;
   }
 
   public void SeekPlaque() {
-    Debug.Log("Seeking Plaque");
+    // Debug.Log("Seeking Plaque");
 
     var prof = GetMemorizedProfessor(CurrentProfName);
     if (prof != null) {
       CurrentProf = prof;
-      Debug.Log("Memorized");
+      // Debug.Log("Memorized");
       SeekProf();
       return;
     }
@@ -41,7 +44,7 @@ public class StudentState {
   }
 
   public void SeekNextPlaque() {
-    Debug.Log("Seeking Plaque");
+    // Debug.Log("Seeking Plaque");
     CurrentStatus = Status.SeekingPlaque;
     currentPlaqueInd = (currentPlaqueInd + 1) % gameManager.Plaques.Length;
     CurrentPlaque = gameManager.Plaques[currentPlaqueInd];
@@ -49,29 +52,43 @@ public class StudentState {
   }
 
   public void SeekProf() {
-    Debug.Log("Seeking Prof");
+    // Debug.Log("Seeking Prof");
     CurrentStatus = Status.SeekingProf;
     DestinationCell = CurrentProf.GetTargetCell();
     CurrentPlaque = null;
   }
 
   public void ConsultProf() {
-    Debug.Log("Consulting Prof");
+    // Debug.Log("Consulting Prof");
     CurrentStatus = Status.ConsultingProf;
     CurrentProfName = CurrentProf.GetNextProfName();
     CurrentProf = null;
-    // TODO idle for 0.5 seconds
+  }
+
+  public void ConsultProfIdle() {
+    CurrentStatus = Status.ConsultingProfIdling;
+    setIdling(4); // 4 timeunits ~ 0.5 s
+  }
+
+  public void SeekIdlingCell() {
+    // Debug.Log("Seeking Idle Cell");
+    CurrentStatus = Status.SeekingIdleCell;
+    DestinationCell = gameManager.Grid.GetRandomMainFloorCell();
   }
 
   public void RandomIdle() {
-    Debug.Log("Randomly Idling");
     CurrentStatus = Status.RandomIdling;
-    DestinationCell = gameManager.Grid.GetRandomMainFloorCell();
-    // idle for 2-3 seconds
+    setIdling(16); // 16 timeunits ~ 2.5 s
+  }
+
+  private void setIdling(int idleTime) {
+    // Debug.Log("Iding");
+    IsIdling = true;
+    IdleTime = idleTime;
   }
 
   // called after the last status is finished
-  public void Behave() {
+  public void NextState() {
     switch (CurrentStatus) { // checking the previous status
       case Status.SeekingPlaque:
         if (last4Professors.Count >= 4)
@@ -91,13 +108,23 @@ public class StudentState {
         break;
 
       case Status.ConsultingProf:
+        ConsultProfIdle();
+        break;
+
+      case Status.ConsultingProfIdling:
+        IsIdling = false;
         if (Random.value < 0.5f) // 50/50 chance of idling or seeking the next prof
-          RandomIdle();
+          SeekIdlingCell();
         else
           SeekPlaque();
         break;
 
+      case Status.SeekingIdleCell:
+        RandomIdle();
+        break;
+
       case Status.RandomIdling:
+        IsIdling = false;
         SeekPlaque();
         break;
     }
