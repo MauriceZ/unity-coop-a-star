@@ -33,14 +33,7 @@ public class Student : MonoBehaviour {
     if (startCell == null)
       throw new System.NullReferenceException("Student is not in grid");
 
-    ReverseResumableAStar rra = null;
-    if (rraDict.ContainsKey(destinationCell)) {
-      rra = rraDict[destinationCell];
-    } else {
-      rra = new ReverseResumableAStar(destinationCell, startCell);
-      rraDict[destinationCell] = rra;
-    }
-
+    var rra = getRRA(startCell, destinationCell);
     var queue = new PriorityQueue<Grid.CellTimePair>();
     var startCellTime = new Grid.CellTimePair(startCell, startTimeUnit);
     queue.Enqueue(startCellTime, 0);
@@ -67,7 +60,9 @@ public class Student : MonoBehaviour {
 
     var path = new List<Grid.CellTimePair>();
     if (queue.IsEmpty()) { // path not found
-      Debug.Log("empty path!!");
+      path.Add(new Grid.CellTimePair(startCell, startTimeUnit + 1));
+      path.Add(new Grid.CellTimePair(startCell, startTimeUnit + 2));
+      path.Add(new Grid.CellTimePair(startCell, startTimeUnit + 3));
       return path;
     }
 
@@ -119,6 +114,9 @@ public class Student : MonoBehaviour {
     var path = new List<Grid.CellTimePair>();
     if (queue.IsEmpty()) { // path not found
       Debug.Log("idle empty path!!");
+      path.Add(new Grid.CellTimePair(idleCell, startTimeUnit + 1));
+      path.Add(new Grid.CellTimePair(idleCell, startTimeUnit + 2));
+      path.Add(new Grid.CellTimePair(idleCell, startTimeUnit + 3));
       return path;
     }
 
@@ -169,8 +167,9 @@ public class Student : MonoBehaviour {
         }
       }
 
-      if (!isIdling)
-        frustation.UpdateFrustation(rraDict[destinationCells.Peek()].GetTrueDistance(path[i + 1].cell));
+      if (!isIdling) {
+        frustation.UpdateFrustation(getRRA(path[i + 1].cell, destinationCells.Peek()).GetTrueDistance(path[i + 1].cell));
+      }
       
       for (float j = 0f; j < 1; j += speed/120f) {
         transform.position = currentPosition;
@@ -230,5 +229,18 @@ public class Student : MonoBehaviour {
     }
 
     return currentPlaqueInd;
+  }
+
+  private ReverseResumableAStar getRRA(Cell startCell, Cell destinationCell) {
+    if (rraDict.ContainsKey(destinationCell)) {
+      var rra = rraDict[destinationCell];
+      if (rra.HasCell(startCell) || Cell.ManhanttanDistance(rra.DestinationCell, startCell) <= 8) {
+        return rra;
+      }
+    }
+
+    var newRRA = new ReverseResumableAStar(destinationCell, startCell);
+    rraDict[destinationCell] = newRRA;
+    return newRRA;
   }
 }

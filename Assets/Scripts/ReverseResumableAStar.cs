@@ -9,6 +9,8 @@ public class ReverseResumableAStar {
   private PriorityQueue<Cell> queue;
   private Dictionary<Cell, float> gCosts;
 
+  public Cell DestinationCell { get { return destinationCell; } }
+
   public ReverseResumableAStar(Cell startCell, Cell destinationCell) {
     this.destinationCell = destinationCell;
     visited = new HashSet<Cell>();
@@ -42,11 +44,17 @@ public class ReverseResumableAStar {
           queue.Enqueue(neighborCell, neighborGCost + neighborHCost);
         }
       }
+
+      // Debug.Log("getting true distance");
     }
 
     if (gCosts.ContainsKey(targetCell))
       return gCosts[targetCell];
 
     throw new System.ArgumentException("Target cell " + targetCell.GridCoords + " was not found");
+  }
+
+  public bool HasCell(Cell targetCell) {
+    return gCosts.ContainsKey(targetCell);
   }
 }
