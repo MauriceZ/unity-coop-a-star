@@ -67,7 +67,7 @@ public class StudentState {
 
   public void ConsultProfIdle() {
     CurrentStatus = Status.ConsultingProfIdling;
-    setIdling(4); // 4 timeunits ~ 0.5 s
+    setIdling(8); // 8 timeunits ~ 1 s
   }
 
   public void SeekIdlingCell() {
@@ -78,7 +78,7 @@ public class StudentState {
 
   public void RandomIdle() {
     CurrentStatus = Status.RandomIdling;
-    setIdling(16); // 16 timeunits ~ 2.5 s
+    setIdling(16); // 16 timeunits ~ 3 s
   }
 
   private void setIdling(int idleTime) {
