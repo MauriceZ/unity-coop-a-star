@@ -87,7 +87,7 @@ public class StudentState {
     IdleTime = idleTime;
   }
 
-  // called after the last status is finished
+  // called after the last state is finished
   public void NextState() {
     switch (CurrentStatus) { // checking the previous status
       case Status.SeekingPlaque:

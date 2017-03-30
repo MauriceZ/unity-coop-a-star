@@ -21,15 +21,15 @@ public class Cell {
 
     foreach (var neighbor in allNeighbors) {
       if (!grid.ReservationTable.ContainsKey(new Grid.CellTimePair(neighbor, timeunit))) {
-        // head to head collision prevention
 
+        // head to head collision prevention
         var neighborReservation = new Grid.CellTimePair(neighbor, timeunit - 1);
         if (grid.ReservationTable.ContainsKey(neighborReservation)) {
           var neighborStudent = grid.ReservationTable[neighborReservation];
           var cellNextReservation = new Grid.CellTimePair(this, timeunit);
           
-          // head-to-head collision detected
           if (grid.ReservationTable.ContainsKey(cellNextReservation) && grid.ReservationTable[cellNextReservation] == neighborStudent) {
+            // head-to-head collision detected
             continue;
           }
         }
